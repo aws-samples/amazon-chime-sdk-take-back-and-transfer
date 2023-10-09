@@ -7,3 +7,4 @@ export * from './distribution';
 export * from './server';
 export * from './cognito';
 export * from './envValidator';
+export * from './connect';

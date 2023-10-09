@@ -57,6 +57,8 @@ export class VPCResources extends Construct {
       allowAllOutbound: true,
     });
 
+    this.sshSecurityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(22));
+
     this.voiceSecurityGroup = new SecurityGroup(this, 'AsteriskSecurityGroup', {
       vpc: this.vpc,
       description: 'Security Group for Asterisk Instance',

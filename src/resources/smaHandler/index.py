@@ -70,16 +70,20 @@ def handler(event, context):
             ]
         if transaction_attributes.get('active_call_to_connect', 'false') == 'true':
             logger.info('%s REMOVING CALL FROM INTEGRATION TABLE', LOG_PREFIX)
+            transaction_attributes['active_call_to_connect'] = 'false'
             remove_call_from_integration_table(transaction_attributes['sma_number'], transaction_attributes['connect_number'])
 
-    if event_type == 'HANGUP' and event['ActionData']['Parameters']['ParticipantTag'] == 'LEG-B':
+    if event_type == 'HANGUP' and event['ActionData']['Parameters']['ParticipantTag'] == 'LEG-B' and transaction_attributes.get('transfer', 'false') == 'false':
         logger.info('%s HANGUP FROM LEG-B', LOG_PREFIX)
         if len(event['CallDetails']['Participants']) > 1:
+            leg_a_participant = next((p for p in event['CallDetails']['Participants'] if p['ParticipantTag'] == 'LEG-A'), None)
             actions = [
-                hangup(event['CallDetails']['Participants'][0]['CallId'])
+                hangup(leg_a_participant['CallId'])
             ]
+
         if transaction_attributes.get('active_call_to_connect', 'false') == 'true':
             logger.info('%s REMOVING CALL FROM INTEGRATION TABLE', LOG_PREFIX)
+            transaction_attributes['active_call_to_connect'] = 'false'
             remove_call_from_integration_table(transaction_attributes['sma_number'], transaction_attributes['connect_number'])
 
     if event_type == 'CALL_UPDATE_REQUESTED':

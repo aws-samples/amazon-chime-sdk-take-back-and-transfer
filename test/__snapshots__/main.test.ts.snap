@@ -12,19 +12,6 @@ exports[`Snapshot 1`] = `
     },
   },
   "Outputs": {
-    "ConnectLambda": {
-      "Value": {
-        "Fn::GetAtt": [
-          "LambdaResourcesconnectLambda66D93256",
-          "Arn",
-        ],
-      },
-    },
-    "Dashboard": {
-      "Value": {
-        "Ref": "CloudWatchResourcesDashboard41221379",
-      },
-    },
     "DistributionURL": {
       "Value": {
         "Fn::GetAtt": [
@@ -38,48 +25,6 @@ exports[`Snapshot 1`] = `
         "Fn::GetAtt": [
           "voiceResourcessmaPSTNPhoneNumberChimePhoneNumberpstnCustomResource7CF83AAB",
           "phoneNumber",
-        ],
-      },
-    },
-    "SSHSecurityGroup": {
-      "Value": {
-        "Fn::GetAtt": [
-          "VPCResourcesSSHSecurityGroupEABB5EC4",
-          "GroupId",
-        ],
-      },
-    },
-    "addSSH": {
-      "Value": {
-        "Fn::Join": [
-          "",
-          [
-            "aws ec2 authorize-security-group-ingress --group-id ",
-            {
-              "Fn::GetAtt": [
-                "VPCResourcesSSHSecurityGroupEABB5EC4",
-                "GroupId",
-              ],
-            },
-            " --protocol tcp --port 22 --cidr $( curl http://checkip.amazonaws.com )/32",
-          ],
-        ],
-      },
-    },
-    "revokeSSH": {
-      "Value": {
-        "Fn::Join": [
-          "",
-          [
-            "aws ec2 revoke-security-group-ingress --group-id ",
-            {
-              "Fn::GetAtt": [
-                "VPCResourcesSSHSecurityGroupEABB5EC4",
-                "GroupId",
-              ],
-            },
-            " --protocol tcp --port 22 --cidr $( curl http://checkip.amazonaws.com )/32",
-          ],
         ],
       },
     },
@@ -596,6 +541,380 @@ exports[`Snapshot 1`] = `
       },
       "Type": "AWS::IAM::Role",
     },
+    "ConnectContactFlowResourcesConnectCustomResourceA5169D57": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "ConnectContactFlowResourcesConnectCustomResourceProviderframeworkonEventADDB5A65",
+            "Arn",
+          ],
+        },
+        "contactFlowId": {
+          "Ref": "ConnectContactFlowResourcescontactFlow2D84F5E6",
+        },
+        "instanceId": {
+          "Fn::GetAtt": [
+            "ConnectInstanceResourcesInstance5B0E277B",
+            "Id",
+          ],
+        },
+        "phoneNumbers": [
+          {
+            "Fn::GetAtt": [
+              "newConnectNumbersconnectPhoneNumber098AC4A61",
+              "Address",
+            ],
+          },
+          {
+            "Fn::GetAtt": [
+              "newConnectNumbersconnectPhoneNumber1CA4337F4",
+              "Address",
+            ],
+          },
+          {
+            "Fn::GetAtt": [
+              "newConnectNumbersconnectPhoneNumber23831CF9C",
+              "Address",
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::CloudFormation::CustomResource",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "ConnectContactFlowResourcesConnectCustomResourceProviderframeworkonEventADDB5A65": {
+      "DependsOn": [
+        "ConnectContactFlowResourcesConnectCustomResourceProviderframeworkonEventServiceRoleDefaultPolicy6BFCE7C2",
+        "ConnectContactFlowResourcesConnectCustomResourceProviderframeworkonEventServiceRoleEC02EDBA",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "7382a0addb9f34974a1ea6c6c9b063882af874828f366f5c93b2b7b64db15c94.zip",
+        },
+        "Description": "AWS CDK resource provider framework - onEvent (test/ConnectContactFlowResources/ConnectCustomResourceProvider)",
+        "Environment": {
+          "Variables": {
+            "USER_ON_EVENT_FUNCTION_ARN": {
+              "Fn::GetAtt": [
+                "ConnectContactFlowResourcesassociateNumberCustomResourceLambdaA26AAB47",
+                "Arn",
+              ],
+            },
+          },
+        },
+        "Handler": "framework.onEvent",
+        "Role": {
+          "Fn::GetAtt": [
+            "ConnectContactFlowResourcesConnectCustomResourceProviderframeworkonEventServiceRoleEC02EDBA",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs18.x",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "ConnectContactFlowResourcesConnectCustomResourceProviderframeworkonEventLogRetention71F6045E": {
+      "Properties": {
+        "LogGroupName": {
+          "Fn::Join": [
+            "",
+            [
+              "/aws/lambda/",
+              {
+                "Ref": "ConnectContactFlowResourcesConnectCustomResourceProviderframeworkonEventADDB5A65",
+              },
+            ],
+          ],
+        },
+        "RetentionInDays": 7,
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::LogRetention",
+    },
+    "ConnectContactFlowResourcesConnectCustomResourceProviderframeworkonEventServiceRoleDefaultPolicy6BFCE7C2": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "ConnectContactFlowResourcesassociateNumberCustomResourceLambdaA26AAB47",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "ConnectContactFlowResourcesassociateNumberCustomResourceLambdaA26AAB47",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "ConnectContactFlowResourcesConnectCustomResourceProviderframeworkonEventServiceRoleDefaultPolicy6BFCE7C2",
+        "Roles": [
+          {
+            "Ref": "ConnectContactFlowResourcesConnectCustomResourceProviderframeworkonEventServiceRoleEC02EDBA",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "ConnectContactFlowResourcesConnectCustomResourceProviderframeworkonEventServiceRoleEC02EDBA": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "ConnectContactFlowResourcesassociateNumberCustomResourceLambdaA26AAB47": {
+      "DependsOn": [
+        "ConnectContactFlowResourcesassociateNumberCustomResourceRole8D930A19",
+      ],
+      "Properties": {
+        "Architectures": [
+          "arm64",
+        ],
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "ea67dcafac7a9e7070c6adcec40281ca7813e2b65c6b774d1ee1c425e8fb7144.zip",
+        },
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "ConnectContactFlowResourcesassociateNumberCustomResourceRole8D930A19",
+            "Arn",
+          ],
+        },
+        "Runtime": "python3.11",
+        "Timeout": 60,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "ConnectContactFlowResourcesassociateNumberCustomResourceRole8D930A19": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+        "Policies": [
+          {
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Action": [
+                    "connect:ListPhoneNumbersV2",
+                    "connect:AssociatePhoneNumberContactFlow",
+                    "connect:DisassociatePhoneNumberContactFlow",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": "*",
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "connectPolicy",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "ConnectContactFlowResourcescontactFlow2D84F5E6": {
+      "Properties": {
+        "Content": {
+          "Fn::Join": [
+            "",
+            [
+              "{"Version":"2019-10-30","StartAction":"93b3c694-3f9a-46f9-b53d-1fa4187f4d03","Metadata":{"entryPointPosition":{"x":40,"y":40},"ActionMetadata":{"93b3c694-3f9a-46f9-b53d-1fa4187f4d03":{"position":{"x":162.4,"y":101.6}},"03a772b9-711c-4063-b71f-108b030e5174":{"position":{"x":399.2,"y":100}},"GetData":{"position":{"x":640.8,"y":101.6},"isFriendlyName":true,"parameters":{"LambdaFunctionARN":{"displayName":"",
+              {
+                "Fn::GetAtt": [
+                  "LambdaResourcesconnectLambda66D93256",
+                  "Arn",
+                ],
+              },
+              ""}},"dynamicMetadata":{"Purpose":false}},"d87f251a-2ac4-4204-8d85-c5c684c820a1":{"position":{"x":880,"y":99.2},"parameters":{"Attributes":{"OriginalCallingNumber":{"useDynamic":true}}},"dynamicParams":["OriginalCallingNumber"]},"PlayOriginalCallingNumber":{"position":{"x":1120.8,"y":100},"isFriendlyName":true},"TransferCall":{"position":{"x":1361.6,"y":98.4},"isFriendlyName":true,"parameters":{"LambdaFunctionARN":{"displayName":"",
+              {
+                "Fn::GetAtt": [
+                  "LambdaResourcesconnectLambda66D93256",
+                  "Arn",
+                ],
+              },
+              ""},"LambdaInvocationAttributes":{"CalledNumber":{"useDynamic":true},"CallingNumber":{"useDynamic":true}}},"dynamicMetadata":{"CalledNumber":true,"CallingNumber":true,"Purpose":false}},"90c241fa-4bd0-4def-84ce-9163792ae0b0":{"position":{"x":1840.8,"y":359.2}}},"Annotations":[],"name":"TakeBackAndTransferDemo","description":"","type":"contactFlow","status":"saved","hash":{}},"Actions":[{"Parameters":{"FlowLoggingBehavior":"Enabled"},"Identifier":"93b3c694-3f9a-46f9-b53d-1fa4187f4d03","Type":"UpdateFlowLoggingBehavior","Transitions":{"NextAction":"03a772b9-711c-4063-b71f-108b030e5174"}},{"Parameters":{"Text":"Thank you for calling a Connect number through Amazon Chime SDK."},"Identifier":"03a772b9-711c-4063-b71f-108b030e5174","Type":"MessageParticipant","Transitions":{"NextAction":"GetData","Errors":[{"NextAction":"90c241fa-4bd0-4def-84ce-9163792ae0b0","ErrorType":"NoMatchingError"}]}},{"Parameters":{"LambdaFunctionARN":"",
+              {
+                "Fn::GetAtt": [
+                  "LambdaResourcesconnectLambda66D93256",
+                  "Arn",
+                ],
+              },
+              "","InvocationTimeLimitSeconds":"3","LambdaInvocationAttributes":{"CalledNumber":"$.SystemEndpoint.Address","CallingNumber":"$.CustomerEndpoint.Address","Purpose":"GetData"},"ResponseValidation":{"ResponseType":"JSON"}},"Identifier":"GetData","Type":"InvokeLambdaFunction","Transitions":{"NextAction":"d87f251a-2ac4-4204-8d85-c5c684c820a1","Errors":[{"NextAction":"90c241fa-4bd0-4def-84ce-9163792ae0b0","ErrorType":"NoMatchingError"}]}},{"Parameters":{"Attributes":{"OriginalCallingNumber":"$.External.original_calling_number"},"TargetContact":"Current"},"Identifier":"d87f251a-2ac4-4204-8d85-c5c684c820a1","Type":"UpdateContactAttributes","Transitions":{"NextAction":"PlayOriginalCallingNumber","Errors":[{"NextAction":"90c241fa-4bd0-4def-84ce-9163792ae0b0","ErrorType":"NoMatchingError"}]}},{"Parameters":{"SSML":"Your original calling number is <say-as interpret-as='telephone'>$.Attributes.OriginalCallingNumber</say-as>"},"Identifier":"PlayOriginalCallingNumber","Type":"MessageParticipant","Transitions":{"NextAction":"TransferCall","Errors":[{"NextAction":"90c241fa-4bd0-4def-84ce-9163792ae0b0","ErrorType":"NoMatchingError"}]}},{"Parameters":{"LambdaFunctionARN":"",
+              {
+                "Fn::GetAtt": [
+                  "LambdaResourcesconnectLambda66D93256",
+                  "Arn",
+                ],
+              },
+              "","InvocationTimeLimitSeconds":"3","LambdaInvocationAttributes":{"CalledNumber":"$.SystemEndpoint.Address","CallingNumber":"$.CustomerEndpoint.Address","Purpose":"TransferCall"},"ResponseValidation":{"ResponseType":"JSON"}},"Identifier":"TransferCall","Type":"InvokeLambdaFunction","Transitions":{"NextAction":"90c241fa-4bd0-4def-84ce-9163792ae0b0","Errors":[{"NextAction":"90c241fa-4bd0-4def-84ce-9163792ae0b0","ErrorType":"NoMatchingError"}]}},{"Parameters":{},"Identifier":"90c241fa-4bd0-4def-84ce-9163792ae0b0","Type":"DisconnectParticipant","Transitions":{}}]}",
+            ],
+          ],
+        },
+        "InstanceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:aws:connect:",
+              {
+                "Ref": "AWS::Region",
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId",
+              },
+              ":instance/",
+              {
+                "Fn::GetAtt": [
+                  "ConnectInstanceResourcesInstance5B0E277B",
+                  "Id",
+                ],
+              },
+            ],
+          ],
+        },
+        "Name": "TakeBackAndTransferDemo",
+        "Type": "CONTACT_FLOW",
+      },
+      "Type": "AWS::Connect::ContactFlow",
+    },
+    "ConnectContactFlowResourceslambdaIntegrationC9F73B2E": {
+      "Properties": {
+        "InstanceId": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:aws:connect:",
+              {
+                "Ref": "AWS::Region",
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId",
+              },
+              ":instance/",
+              {
+                "Fn::GetAtt": [
+                  "ConnectInstanceResourcesInstance5B0E277B",
+                  "Id",
+                ],
+              },
+            ],
+          ],
+        },
+        "IntegrationArn": {
+          "Fn::GetAtt": [
+            "LambdaResourcesconnectLambda66D93256",
+            "Arn",
+          ],
+        },
+        "IntegrationType": "LAMBDA_FUNCTION",
+      },
+      "Type": "AWS::Connect::IntegrationAssociation",
+    },
+    "ConnectInstanceResourcesInstance5B0E277B": {
+      "Properties": {
+        "Attributes": {
+          "AutoResolveBestVoices": true,
+          "ContactLens": false,
+          "ContactflowLogs": false,
+          "EarlyMedia": false,
+          "InboundCalls": true,
+          "OutboundCalls": false,
+          "UseCustomTTSVoices": false,
+        },
+        "IdentityManagementType": "CONNECT_MANAGED",
+        "InstanceAlias": {
+          "Fn::Join": [
+            "",
+            [
+              "take-back-and-transfer-",
+              {
+                "Ref": "AWS::AccountId",
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Connect::Instance",
+    },
     "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C512MiB6723FB92": {
       "DependsOn": [
         "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C512MiBServiceRoleDefaultPolicy96C3E726",
@@ -765,7 +1084,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "c992b4263e8674c3eb6d3f46985751f636e1a3da5d867c382e9e0a2b0b59b405.zip",
+          "S3Key": "dee0bb405ddef47dd39f42efcab9a15b346000d4f4f83d64bebaa7681ac01ad9.zip",
         },
         "Handler": "__entrypoint__.handler",
         "MemorySize": 128,
@@ -988,63 +1307,126 @@ exports[`Snapshot 1`] = `
                   "phoneNumber",
                 ],
               },
-              ""},"connect_number":{"S":"+18006600302"},"in_use":{"S":"false"}}}},{"PutRequest":{"Item":{"sma_number":{"S":"",
+              ""},"connect_number":{"S":"",
+              {
+                "Fn::GetAtt": [
+                  "newConnectNumbersconnectPhoneNumber098AC4A61",
+                  "Address",
+                ],
+              },
+              ""},"in_use":{"S":"false"}}}},{"PutRequest":{"Item":{"sma_number":{"S":"",
               {
                 "Fn::GetAtt": [
                   "voiceResourcessmaPhoneNumber0ChimePhoneNumberpstnCustomResourceE4F69902",
                   "phoneNumber",
                 ],
               },
-              ""},"connect_number":{"S":"+18007329615"},"in_use":{"S":"false"}}}},{"PutRequest":{"Item":{"sma_number":{"S":"",
+              ""},"connect_number":{"S":"",
+              {
+                "Fn::GetAtt": [
+                  "newConnectNumbersconnectPhoneNumber1CA4337F4",
+                  "Address",
+                ],
+              },
+              ""},"in_use":{"S":"false"}}}},{"PutRequest":{"Item":{"sma_number":{"S":"",
               {
                 "Fn::GetAtt": [
                   "voiceResourcessmaPhoneNumber0ChimePhoneNumberpstnCustomResourceE4F69902",
                   "phoneNumber",
                 ],
               },
-              ""},"connect_number":{"S":"+18007670589"},"in_use":{"S":"false"}}}},{"PutRequest":{"Item":{"sma_number":{"S":"",
+              ""},"connect_number":{"S":"",
+              {
+                "Fn::GetAtt": [
+                  "newConnectNumbersconnectPhoneNumber23831CF9C",
+                  "Address",
+                ],
+              },
+              ""},"in_use":{"S":"false"}}}},{"PutRequest":{"Item":{"sma_number":{"S":"",
               {
                 "Fn::GetAtt": [
                   "voiceResourcessmaPhoneNumber1ChimePhoneNumberpstnCustomResource78D9DEE1",
                   "phoneNumber",
                 ],
               },
-              ""},"connect_number":{"S":"+18006600302"},"in_use":{"S":"false"}}}},{"PutRequest":{"Item":{"sma_number":{"S":"",
+              ""},"connect_number":{"S":"",
+              {
+                "Fn::GetAtt": [
+                  "newConnectNumbersconnectPhoneNumber098AC4A61",
+                  "Address",
+                ],
+              },
+              ""},"in_use":{"S":"false"}}}},{"PutRequest":{"Item":{"sma_number":{"S":"",
               {
                 "Fn::GetAtt": [
                   "voiceResourcessmaPhoneNumber1ChimePhoneNumberpstnCustomResource78D9DEE1",
                   "phoneNumber",
                 ],
               },
-              ""},"connect_number":{"S":"+18007329615"},"in_use":{"S":"false"}}}},{"PutRequest":{"Item":{"sma_number":{"S":"",
+              ""},"connect_number":{"S":"",
+              {
+                "Fn::GetAtt": [
+                  "newConnectNumbersconnectPhoneNumber1CA4337F4",
+                  "Address",
+                ],
+              },
+              ""},"in_use":{"S":"false"}}}},{"PutRequest":{"Item":{"sma_number":{"S":"",
               {
                 "Fn::GetAtt": [
                   "voiceResourcessmaPhoneNumber1ChimePhoneNumberpstnCustomResource78D9DEE1",
                   "phoneNumber",
                 ],
               },
-              ""},"connect_number":{"S":"+18007670589"},"in_use":{"S":"false"}}}},{"PutRequest":{"Item":{"sma_number":{"S":"",
+              ""},"connect_number":{"S":"",
+              {
+                "Fn::GetAtt": [
+                  "newConnectNumbersconnectPhoneNumber23831CF9C",
+                  "Address",
+                ],
+              },
+              ""},"in_use":{"S":"false"}}}},{"PutRequest":{"Item":{"sma_number":{"S":"",
               {
                 "Fn::GetAtt": [
                   "voiceResourcessmaPhoneNumber2ChimePhoneNumberpstnCustomResourceBAF8216C",
                   "phoneNumber",
                 ],
               },
-              ""},"connect_number":{"S":"+18006600302"},"in_use":{"S":"false"}}}},{"PutRequest":{"Item":{"sma_number":{"S":"",
+              ""},"connect_number":{"S":"",
+              {
+                "Fn::GetAtt": [
+                  "newConnectNumbersconnectPhoneNumber098AC4A61",
+                  "Address",
+                ],
+              },
+              ""},"in_use":{"S":"false"}}}},{"PutRequest":{"Item":{"sma_number":{"S":"",
               {
                 "Fn::GetAtt": [
                   "voiceResourcessmaPhoneNumber2ChimePhoneNumberpstnCustomResourceBAF8216C",
                   "phoneNumber",
                 ],
               },
-              ""},"connect_number":{"S":"+18007329615"},"in_use":{"S":"false"}}}},{"PutRequest":{"Item":{"sma_number":{"S":"",
+              ""},"connect_number":{"S":"",
+              {
+                "Fn::GetAtt": [
+                  "newConnectNumbersconnectPhoneNumber1CA4337F4",
+                  "Address",
+                ],
+              },
+              ""},"in_use":{"S":"false"}}}},{"PutRequest":{"Item":{"sma_number":{"S":"",
               {
                 "Fn::GetAtt": [
                   "voiceResourcessmaPhoneNumber2ChimePhoneNumberpstnCustomResourceBAF8216C",
                   "phoneNumber",
                 ],
               },
-              ""},"connect_number":{"S":"+18007670589"},"in_use":{"S":"false"}}}}]}},"physicalResourceId":{"id":"",
+              ""},"connect_number":{"S":"",
+              {
+                "Fn::GetAtt": [
+                  "newConnectNumbersconnectPhoneNumber23831CF9C",
+                  "Address",
+                ],
+              },
+              ""},"in_use":{"S":"false"}}}}]}},"physicalResourceId":{"id":"",
               {
                 "Ref": "DatabaseResourcesintegrationTableAB8F2C7D",
               },
@@ -1228,7 +1610,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "bdc2c3855181b6f5a9f0208ff1c9b8f9eeed56e0d1275ae96ee681b7de852325.zip",
+          "S3Key": "b290f384f41e8643acf3178fc689f64cff544e12a90078a7b0c0851b58705fca.zip",
         },
         "Environment": {
           "Variables": {
@@ -1488,8 +1870,11 @@ exports[`Snapshot 1`] = `
     },
     "ServerEIPAssociationA690C099": {
       "Properties": {
-        "EIP": {
-          "Ref": "VPCResourcesasteriskEipC341F971",
+        "AllocationId": {
+          "Fn::GetAtt": [
+            "VPCResourcesasteriskEipC341F971",
+            "AllocationId",
+          ],
         },
         "InstanceId": {
           "Ref": "ServerInstanceE518391Bc0797b42f84ed85a",
@@ -2844,6 +3229,15 @@ ln -s /usr/local/bin/cfn-* /opt/aws/bin/
             "IpProtocol": "-1",
           },
         ],
+        "SecurityGroupIngress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "from 0.0.0.0/0:22",
+            "FromPort": 22,
+            "IpProtocol": "tcp",
+            "ToPort": 22,
+          },
+        ],
         "VpcId": {
           "Ref": "VPCResourcesVPC89517325",
         },
@@ -3034,6 +3428,93 @@ ln -s /usr/local/bin/cfn-* /opt/aws/bin/
     "VPCResourcesasteriskEipC341F971": {
       "Type": "AWS::EC2::EIP",
     },
+    "newConnectNumbersconnectPhoneNumber098AC4A61": {
+      "Properties": {
+        "CountryCode": "US",
+        "TargetArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:aws:connect:",
+              {
+                "Ref": "AWS::Region",
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId",
+              },
+              ":instance/",
+              {
+                "Fn::GetAtt": [
+                  "ConnectInstanceResourcesInstance5B0E277B",
+                  "Id",
+                ],
+              },
+            ],
+          ],
+        },
+        "Type": "DID",
+      },
+      "Type": "AWS::Connect::PhoneNumber",
+    },
+    "newConnectNumbersconnectPhoneNumber1CA4337F4": {
+      "Properties": {
+        "CountryCode": "US",
+        "TargetArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:aws:connect:",
+              {
+                "Ref": "AWS::Region",
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId",
+              },
+              ":instance/",
+              {
+                "Fn::GetAtt": [
+                  "ConnectInstanceResourcesInstance5B0E277B",
+                  "Id",
+                ],
+              },
+            ],
+          ],
+        },
+        "Type": "DID",
+      },
+      "Type": "AWS::Connect::PhoneNumber",
+    },
+    "newConnectNumbersconnectPhoneNumber23831CF9C": {
+      "Properties": {
+        "CountryCode": "US",
+        "TargetArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:aws:connect:",
+              {
+                "Ref": "AWS::Region",
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId",
+              },
+              ":instance/",
+              {
+                "Fn::GetAtt": [
+                  "ConnectInstanceResourcesInstance5B0E277B",
+                  "Id",
+                ],
+              },
+            ],
+          ],
+        },
+        "Type": "DID",
+      },
+      "Type": "AWS::Connect::PhoneNumber",
+    },
     "voiceResourcespstnVoiceConnectorvoiceConnectorRequestpstnCustomResource7181BF13": {
       "DeletionPolicy": "Delete",
       "Properties": {
@@ -3168,7 +3649,7 @@ ln -s /usr/local/bin/cfn-* /opt/aws/bin/
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "c92aff91f4d86d9f147b5d1ab398d0fe1ec368706c19a1081cb60f50d7cdcf62.zip",
+          "S3Key": "d86bf01946ca375c90f003817d917b58fcec2b897c68f9e2b442af71605940d4.zip",
         },
         "Environment": {
           "Variables": {

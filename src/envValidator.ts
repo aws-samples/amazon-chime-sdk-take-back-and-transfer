@@ -17,14 +17,12 @@ export function EnvValidator(props: AmazonChimeSDKTakeBackAndTransferProps) {
     }
   }
 
-  if (props.connectNumbers.length === 0) {
-    throw new Error('CONNECT_PHONE_NUMBERS is required');
-  }
-
-  if (phonePattern.test(props.connectNumbers) === false) {
-    throw new Error(
-      'CONNECT_PHONE_NUMBERS must be a comma-separated list of E.164 US phone numbers (+1XXXYYYZZZZ,+1XXXYYYZZZZ)',
-    );
+  if (props.connectNumbers.length != 0) {
+    if (phonePattern.test(props.connectNumbers) === false) {
+      throw new Error(
+        'CONNECT_PHONE_NUMBERS must be a comma-separated list of E.164 US phone numbers (+1XXXYYYZZZZ,+1XXXYYYZZZZ)',
+      );
+    }
   }
 
   if (

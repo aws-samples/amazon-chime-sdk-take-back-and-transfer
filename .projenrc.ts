@@ -29,6 +29,7 @@ const project = new awscdk.AwsCdkTypeScriptApp({
     'fs-extra',
     '@types/fs-extra',
     'cdk-nag',
+    '@aws-sdk/client-connect',
   ],
   autoApproveUpgrades: true,
   projenUpgradeSecret: 'PROJEN_GITHUB_TOKEN',

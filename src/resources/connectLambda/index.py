@@ -29,29 +29,32 @@ def handler(event, context):
     logger.info("%s Event: %s", LOG_PREFIX, json.dumps(event, indent=2))
     sma_number = event['Details']['Parameters']['CallingNumber']
     connect_number = event['Details']['Parameters']['CalledNumber']
-    transaction_id = get_latest_transaction_id(sma_number, connect_number)
-    if transaction_id is not None:
-        logger.info("%s Calling SIP Media Application with transaction ID: %s", LOG_PREFIX, transaction_id)
-        update_sip_media_application_call(transaction_id)
-        status_code = 200
-        message = f"Calling SIP Media Application with transaction ID: {transaction_id}."
-    else:
-        logger.info("%s No matching record found for calling number: %s and called number: %s", LOG_PREFIX, sma_number, connect_number)
-        status_code = 503
-        message = f"No matching record found for calling number {sma_number} and called number {connect_number}."
-
-    response = {
-        "statusCode": status_code,
-        "headers": {"Content-Type": "application/json"},
-        "body": json.dumps({
-            "message": message
-        })
-    }
+    purpose = event['Details']['Parameters']['Purpose']
+    body = {}
+    call_data = get_data(sma_number, connect_number)
+    if purpose == 'GetData':
+        logger.info('Getting Data')
+        if call_data['original_calling_number']['S'] is not None:
+            logger.info('%s Get Data returned original_calling_number: %s', LOG_PREFIX, call_data['original_calling_number']['S'])
+            body['original_calling_number'] = call_data['original_calling_number']['S']
+        else:
+            logger.info("%s No matching record found for calling number: %s and called number: %s", LOG_PREFIX, sma_number, connect_number)
+            body['message'] = f"No matching record found for calling number {sma_number} and called number {connect_number}."
+    elif purpose == 'TransferCall':
+        logger.info('Transferring Call')
+        if call_data['transaction_id']['S'] is not None:
+            logger.info("%s Calling SIP Media Application with transaction ID: %s", LOG_PREFIX, call_data['transaction_id']['S'])
+            update_sip_media_application_call(call_data['transaction_id']['S'])
+            body['message'] = f"Calling SIP Media Application with transaction ID: {call_data['transaction_id']['S']}."
+        else:
+            logger.info("%s No matching record found for calling number: %s and called number: %s", LOG_PREFIX, sma_number, connect_number)
+            body['message'] = f"No matching record found for calling number {sma_number} and called number {connect_number}."
+    response = body
     return response
 
 
-def get_latest_transaction_id(sma_number, connect_number):
-    logger.info("%s Getting latest transaction ID for calling number: %s and called number: %s", LOG_PREFIX, sma_number, connect_number)
+def get_data(sma_number, connect_number):
+    logger.info("%s Getting latest data for calling number: %s and called number: %s", LOG_PREFIX, sma_number, connect_number)
     response = dynamodb.query(
         TableName=INTEGRATION_TABLE,
         KeyConditionExpression="sma_number = :sma_number and connect_number = :connect_number",
@@ -64,9 +67,9 @@ def get_latest_transaction_id(sma_number, connect_number):
         )
 
     if response["Count"] > 0:
-        latest_item = response["Items"][0]
-        transaction_id = latest_item["transaction_id"]["S"]
-        return transaction_id
+        item = response["Items"][0]
+        logger.info("%s Table returned: %s", LOG_PREFIX, json.dumps(item))
+        return item
     else:
         return None
 

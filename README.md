@@ -65,9 +65,13 @@ this.integrationTable.addGlobalSecondaryIndex({
 });
 ```
 
+The result will look something like this.
+
+![DynamoDBExample](images/DynamoDBExample.png)
+
 ### Querying DynamoDB
 
-To find an unused combination, we will query the Global Secondary Index to find `in_use` equal to `false`.
+When making the call from the SIP media application to Amazon Connect, we will query the Global Secondary Index to find `in_use` equal to `false` to find an unused combination.
 
 ```python
 response = dynamodb.query(
@@ -110,35 +114,47 @@ This DynamoDB `update_item` will ensure that `in_use` is `false` before updating
 
 ### Retrieving the information
 
-Within the Connect contact flow, we can invoke a Lambda function to query the DynamoDB and retrieve any of the information we stored there. First, we will need to pass the `calling_number` and `called_number` to our Lambda function. To do this, we will set a [`Destination Key`](https://docs.aws.amazon.com/connect/latest/adminguide/connect-lambda-functions.html#function-contact-flow) when invoking the Lambda.
+Within the Connect contact flow, we can invoke a Lambda function to query the DynamoDB and retrieve any of the information we stored there. First, we will need to pass the `calling_number` and `called_number` to our Lambda function. To do this, we will set a [`Destination Key`](https://docs.aws.amazon.com/connect/latest/adminguide/connect-lambda-functions.html#function-contact-flow) when invoking the Lambda from our Connect contact flow.
 
-![CallingNumber](images/CallingNumber.png)
+#### Invoke AWS Lambda function Configuration
 
-![CalledNumber](images/CalledNumber.png)
+![GetData](images/ContactFlowGetData.png)
+
+Using the input parameters, we are able to pass the `calling_number` and `called_number` to the Lambda function and use these to query the DynamoDB table. With this, we can find the `transaction_id` of the SIP media application or any other piece of information that is passed between the SIP media application the Connect contact flow.
+
+#### Lambda function
+
+Within the Lambda function, we will use this data to query the DynamoDB Table.
 
 ```python
 sma_number = event['Details']['Parameters']['CallingNumber']
 connect_number = event['Details']['Parameters']['CalledNumber']
-transaction_id = get_latest_transaction_id(sma_number, connect_number)
+call_data = get_data(sma_number, connect_number)
 
-def get_latest_transaction_id(sma_number, connect_number):
-   response = dynamodb.query(
-      TableName=INTEGRATION_TABLE,
-      KeyConditionExpression="sma_number = :sma_number and connect_number = :connect_number",
-      ExpressionAttributeValues={
-         ":sma_number": {"S": sma_number},
-         ":connect_number": {"S": connect_number}
-      },
-      Limit=1,
-      ScanIndexForward=False
-      )
+def get_data(sma_number, connect_number):
+    logger.info("%s Getting latest data for calling number: %s and called number: %s", LOG_PREFIX, sma_number, connect_number)
+    response = dynamodb.query(
+        TableName=INTEGRATION_TABLE,
+        KeyConditionExpression="sma_number = :sma_number and connect_number = :connect_number",
+        ExpressionAttributeValues={
+            ":sma_number": {"S": sma_number},
+            ":connect_number": {"S": connect_number}
+        },
+        Limit=1,
+        ScanIndexForward=False
+        )
+
+    if response["Count"] > 0:
+        item = response["Items"][0]
+        logger.info("%s Table returned: %s", LOG_PREFIX, json.dumps(item))
+        return item
+    else:
+        return None
 ```
-
-Using the input parameters, we are able to pass the `calling_number` and `called_number` to the Lambda function and use these to query the DynamoDB table. With this, we can find the `transaction_id` of the SIP media application.
 
 ## Updating the SIP media application call
 
-Now that we have the `transaction_id` of the call, we can use `update_sip_media_application_call` to interact with the existing call and manipulate it. In this demo, we will be using it to disconnect the call from Connect and establish a new call to a SIP endpoint. To do this, we will pass arguments to the SIP media application. This can be used to pass any piece of information available in the Connect contact flow if it is passed to the Lambda function.
+In order to transfer the call, we can use the `transaction_id` of the call to `update_sip_media_application_call` on the SIP media application to manipulate the existing call. In this demo, we will be using it to disconnect the call from Connect and establish a new call to a SIP endpoint. To do this, we will pass arguments to the SIP media application. This can be used to pass any piece of information available in the Connect contact flow back to the SIP media application if it is passed to the Lambda function.
 
 ```python
 arguments = {
@@ -218,50 +234,61 @@ This function will be used to return an `Action` to the SIP media application th
 
 - yarn installed
 
-### Connect Build
+### Deployment Options
 
-- [Connect instance created](https://docs.aws.amazon.com/connect/latest/adminguide/amazon-connect-instances.html)
-- [Numbers set up](https://docs.aws.amazon.com/connect/latest/adminguide/ag-overview-numbers.html)
+This demo can be deployed with an existing Connect instance or not. It can also be deployed with existing phone numbers or not.
 
-### Configuring
+#### Existing Connect Instance
 
-Add the Connect numbers to the `.env` file as a comma separated string. For example:
+To use an existing Connect instance, add the instance ID to the `.env` file.
+
+```bash
+CONNECT_INSTANCE_ID='11111111-2222-3333-4444-555555555555'
+```
+
+If this is not included in the `.env` file, a new Connect instance will be created.
+
+#### Existing Phone Numbers
+
+To use existing Connect phone numbers, add the numbers to the `.env` file.
 
 ```bash
 CONNECT_NUMBERS='+18005551111,+18005552222,+18005553333'
 ```
 
+If these are not included in the `.env` file, new Connect phone numbers will be created.
+
+### Contact Flow
+
+A new Contact Flow will created to support this demo.
+
+![ContactFlow](images/ContactFlow.png)
+
+This Contact Flow will support the basic features described in this demo. It will:
+
+1. Enable Logging
+2. Play a simple message
+3. Invoke the Lambda to query the DynamoDB
+4. Set a contact attribute based on the response from the Lambda
+5. Play a message using the contact attribute
+6. Invoke the Lambda to transfer the call
+
 ### Deploy Stack
+
+To deploy this stack, using your configured AWS credentials:
 
 ```
 yarn launch
 ```
 
-### Configure Connect
-
-- [Create an inbound flow](https://docs.aws.amazon.com/connect/latest/adminguide/create-contact-flow.html#create-inbound-contact-flow)
-- [Associate numbers to Contact Flow](https://docs.aws.amazon.com/connect/latest/adminguide/associate-claimed-ported-phone-number-to-flow.html)
-- [Add the Lambda function to the Connect instance](https://docs.aws.amazon.com/connect/latest/adminguide/connect-lambda-functions.html#add-lambda-function). The Lambda function ARN is part of the CDK output.
-- Configure the Contact Flow
-
-![ContactFlow](images/ContactFlow.png)
-
-The Contact Flow should invoke the created Lambda function and pass the `calling_number` and `called_number` using the [above method](###Retrieving-the-information).
-
 ### Testing
 
 Once configured, you can make a call to the `AmazonChimeSDKTakeBackAndTransfer.EntryNumber` that is shown in the CDK output. This call will first establish to the SIP media application, then bridge to the Connect instance, disconnect from Connect, and establish a new call to the demo Asterisk.
 
+The included demo Asterisk is a simple PBX that can be used to test this call. You can use the `DistributionURL` included in the CDK output to login to the included PBX to test connectivity. If you do not log in to to this PBX, the call will be answered by the PBX and a sample `wav` file will be played. Information passed to the PBX can be seen in the `X-Original-Calling-Number` that is delivered to the PBX.
+
 ## Cleanup
-
-### SIP media application resources
-
-To remove the SIP media applications resources:
 
 ```
 yarn cdk destroy
 ```
-
-### Connect resources
-
-[Delete the Connect resources](https://docs.aws.amazon.com/connect/latest/adminguide/delete-connect-instance.html)

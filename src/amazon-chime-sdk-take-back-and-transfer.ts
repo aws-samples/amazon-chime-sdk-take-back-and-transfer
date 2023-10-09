@@ -13,6 +13,9 @@ import {
   CloudWatchResources,
   CognitoResources,
   EnvValidator,
+  ConnectContactFlowResources,
+  ConnectInstanceResources,
+  ConnectPhoneResources,
 } from '.';
 
 config();
@@ -22,6 +25,7 @@ export interface AmazonChimeSDKTakeBackAndTransferProps extends StackProps {
   connectNumbers: string;
   sshPubKey: string;
   allowedDomain?: string;
+  connectInstanceId?: string;
 }
 export class AmazonChimeSDKTakBackAndTransfer extends Stack {
   constructor(
@@ -32,8 +36,6 @@ export class AmazonChimeSDKTakBackAndTransfer extends Stack {
     super(scope, id, props);
 
     EnvValidator(props);
-
-    const connectPhoneNumbers: string[] = props.connectNumbers.split(',');
 
     const vpcResources = new VPCResources(this, 'VPCResources');
 
@@ -88,24 +90,49 @@ export class AmazonChimeSDKTakBackAndTransfer extends Stack {
       identityPool: cognitoResources.identityPool,
     });
 
+    let connectNumbers: string[] = [];
+    let connectInstanceId: string = '';
+
+    if (!props.connectInstanceId) {
+      const connectInstance = new ConnectInstanceResources(
+        this,
+        'ConnectInstanceResources',
+      );
+      connectInstanceId = connectInstance.instance.attrId;
+    } else {
+      connectInstanceId = props.connectInstanceId;
+    }
+
+    if (!props.connectNumbers) {
+      const newConnectNumbers = new ConnectPhoneResources(
+        this,
+        'newConnectNumbers',
+        {
+          connectInstanceId: connectInstanceId,
+        },
+      );
+      connectNumbers = newConnectNumbers.connectPhoneNumbers;
+    } else {
+      connectNumbers = props.connectNumbers.split(',');
+    }
+
+    new ConnectContactFlowResources(this, 'ConnectContactFlowResources', {
+      connectLambda: lambdaResources.connectLambda,
+      connectInstanceId: connectInstanceId,
+      connectPhoneNumbers: connectNumbers,
+    });
+
     new DatabaseInitialization(this, 'DatabaseInitialization', {
       integrationTable: databaseResources.integrationTable,
       smaPhoneNumbers: amazonChimeSDKVoiceResources.smaPhoneNumbers,
-      connectPhoneNumbers: connectPhoneNumbers,
+      connectPhoneNumbers: connectNumbers,
     });
 
-    const cloudwatchResources = new CloudWatchResources(
-      this,
-      'CloudWatchResources',
-      {
-        connectLambda: lambdaResources.connectLambda,
-        smaHandler: amazonChimeSDKVoiceResources.smaHandler,
-      },
-    );
-
-    new CfnOutput(this, 'ConnectLambda', {
-      value: lambdaResources.connectLambda.functionArn,
+    new CloudWatchResources(this, 'CloudWatchResources', {
+      connectLambda: lambdaResources.connectLambda,
+      smaHandler: amazonChimeSDKVoiceResources.smaHandler,
     });
+
     new CfnOutput(this, 'ssmCommand', {
       value: `aws ssm start-session --target ${serverResources.instanceId}`,
     });
@@ -114,27 +141,12 @@ export class AmazonChimeSDKTakBackAndTransfer extends Stack {
       value: `ssh ubuntu@${vpcResources.serverEip.ref}`,
     });
 
-    new CfnOutput(this, 'Dashboard', {
-      value: cloudwatchResources.dashboard.dashboardName,
-    });
-
     new CfnOutput(this, 'EntryNumber', {
       value: amazonChimeSDKVoiceResources.smaPSTNPhoneNumber.phoneNumber,
     });
 
     new CfnOutput(this, 'DistributionURL', {
       value: distributionResources.distribution.distributionDomainName,
-    });
-
-    new CfnOutput(this, 'SSHSecurityGroup', {
-      value: vpcResources.sshSecurityGroup.securityGroupId,
-    });
-
-    new CfnOutput(this, 'addSSH', {
-      value: `aws ec2 authorize-security-group-ingress --group-id ${vpcResources.sshSecurityGroup.securityGroupId} --protocol tcp --port 22 --cidr $( curl http://checkip.amazonaws.com )/32`,
-    });
-    new CfnOutput(this, 'revokeSSH', {
-      value: `aws ec2 revoke-security-group-ingress --group-id ${vpcResources.sshSecurityGroup.securityGroupId} --protocol tcp --port 22 --cidr $( curl http://checkip.amazonaws.com )/32`,
     });
   }
 }
@@ -151,6 +163,7 @@ const stackProps = {
   connectNumbers: process.env.CONNECT_NUMBERS || '',
   sshPubKey: process.env.SSH_PUB_KEY || ' ',
   allowedDomain: process.env.ALLOWED_DOMAIN || '',
+  connectInstanceId: process.env.CONNECT_INSTANCE_ID || '',
 };
 
 new AmazonChimeSDKTakBackAndTransfer(app, 'AmazonChimeSDKTakeBackAndTransfer', {
