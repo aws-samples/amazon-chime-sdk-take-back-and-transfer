@@ -48,7 +48,7 @@ exports[`Snapshot 1`] = `
           [
             "aws ssm start-session --target ",
             {
-              "Ref": "ServerInstanceE518391Bc0797b42f84ed85a",
+              "Ref": "ServerInstanceE518391B87a217eae52e3c5b",
             },
           ],
         ],
@@ -76,7 +76,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "a524840909b73225567052baa4f50f81f3f2444186a5011d26e441ac674adb81.zip",
+          "S3Key": "17c16a3854838fd3ff4bda08146122a6701f33b9c86ae17f415ad0dc47a97544.zip",
         },
         "Handler": "index.handler",
         "Role": {
@@ -1084,7 +1084,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "dee0bb405ddef47dd39f42efcab9a15b346000d4f4f83d64bebaa7681ac01ad9.zip",
+          "S3Key": "4e1c22bfc3a8c9768d5a168814ab721614b22249283525e4b079d7b923a0442b.zip",
         },
         "Handler": "__entrypoint__.handler",
         "MemorySize": 128,
@@ -1216,7 +1216,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "5194f926380567b6fdffc61629afdad2afc818614cb227df45e499c69db163a7.zip",
+          "S3Key": "b7f33614a69548d6bafe224d751a7ef238cde19097415e553fe8b63a4c8fd8a6.zip",
         },
         "Description": {
           "Fn::Join": [
@@ -1610,7 +1610,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "b290f384f41e8643acf3178fc689f64cff544e12a90078a7b0c0851b58705fca.zip",
+          "S3Key": "e864005f02edcec991530ccce7c3f45882d82a97653ea6da2c428f7e55c8804d.zip",
         },
         "Environment": {
           "Variables": {
@@ -1877,12 +1877,12 @@ exports[`Snapshot 1`] = `
           ],
         },
         "InstanceId": {
-          "Ref": "ServerInstanceE518391Bc0797b42f84ed85a",
+          "Ref": "ServerInstanceE518391B87a217eae52e3c5b",
         },
       },
       "Type": "AWS::EC2::EIPAssociation",
     },
-    "ServerInstanceE518391Bc0797b42f84ed85a": {
+    "ServerInstanceE518391B87a217eae52e3c5b": {
       "CreationPolicy": {
         "ResourceSignal": {
           "Count": 1,
@@ -2298,7 +2298,7 @@ systemctl restart nginx",
                 "owner": "root",
               },
               "/home/ubuntu/.ssh/authorized_keys": {
-                "content": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAqJ++WfXyL/uqAb/eZ1fT9/MzHCKd/n4gUgddjlcbCV
+                "content": " 
 ",
                 "encoding": "plain",
                 "group": "root",
@@ -2580,7 +2580,7 @@ mkdir -p /opt/aws/bin
 pip3 install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
 ln -s /root/aws-cfn-bootstrap-latest/init/ubuntu/cfn-hup /etc/init.d/cfn-hup
 ln -s /usr/local/bin/cfn-* /opt/aws/bin/
-# fingerprint: 58a5d776af298142
+# fingerprint: ca43336a5cbc04fa
 (
   set +e
   /opt/aws/bin/cfn-init -v --region ",
@@ -2591,7 +2591,7 @@ ln -s /usr/local/bin/cfn-* /opt/aws/bin/
                 {
                   "Ref": "AWS::StackName",
                 },
-                " --resource ServerInstanceE518391Bc0797b42f84ed85a --url https://cloudformation.",
+                " --resource ServerInstanceE518391B87a217eae52e3c5b --url https://cloudformation.",
                 {
                   "Ref": "AWS::Region",
                 },
@@ -2612,7 +2612,7 @@ ln -s /usr/local/bin/cfn-* /opt/aws/bin/
                 {
                   "Ref": "AWS::StackName",
                 },
-                " --resource ServerInstanceE518391Bc0797b42f84ed85a --url https://cloudformation.",
+                " --resource ServerInstanceE518391B87a217eae52e3c5b --url https://cloudformation.",
                 {
                   "Ref": "AWS::Region",
                 },
@@ -2719,7 +2719,7 @@ ln -s /usr/local/bin/cfn-* /opt/aws/bin/
           },
         ],
         "SourceObjectKeys": [
-          "07a1fc46eb96cc353d8cb062cee36680c3378c034ab5a1d09a6a88841dfd8bca.zip",
+          "2b6b126293bd5333d0e28bd32858313f405d02fbe7e93d2ea2b0756c983dd360.zip",
         ],
       },
       "Type": "Custom::CDKBucketDeployment",
@@ -2768,6 +2768,7 @@ ln -s /usr/local/bin/cfn-* /opt/aws/bin/
             },
             {
               "Action": [
+                "s3:PutBucketPolicy",
                 "s3:GetBucket*",
                 "s3:List*",
                 "s3:DeleteObject*",
@@ -2885,7 +2886,7 @@ ln -s /usr/local/bin/cfn-* /opt/aws/bin/
         "Targets": [
           {
             "Id": {
-              "Ref": "ServerInstanceE518391Bc0797b42f84ed85a",
+              "Ref": "ServerInstanceE518391B87a217eae52e3c5b",
             },
           },
         ],
@@ -3018,7 +3019,7 @@ ln -s /usr/local/bin/cfn-* /opt/aws/bin/
         "Targets": [
           {
             "Id": {
-              "Ref": "ServerInstanceE518391Bc0797b42f84ed85a",
+              "Ref": "ServerInstanceE518391B87a217eae52e3c5b",
             },
           },
         ],
