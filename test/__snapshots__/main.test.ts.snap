@@ -925,7 +925,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "9eb41a5505d37607ac419321497a4f8c21cf0ee1f9b4a6b29aa04301aea5c7fd.zip",
+          "S3Key": "0b1f5aa55d045066ed91316b823a808060c12737e0575ab7cefe2335324108b0.zip",
         },
         "Environment": {
           "Variables": {
@@ -1084,7 +1084,7 @@ exports[`Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "0310d7adc941feed07e28eab8b2cfc91ecf24d795810ebfde4911e348db3b37b.zip",
+          "S3Key": "b23a390e022bbaea7980644a3fc46b759d1ceca0fc0ac59b1cef24730a1776a0.zip",
         },
         "Handler": "__entrypoint__.handler",
         "MemorySize": 128,
@@ -2693,7 +2693,7 @@ ln -s /usr/local/bin/cfn-* /opt/aws/bin/
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "e2277687077a2abf9ae1af1cc9565e6715e2ebb62f79ec53aa75a1af9298f642.zip",
+          "S3Key": "3fb6287214999ddeafa7cd0e3e58bc5144c8678bb720f3b5e45e8fd32f333eb3.zip",
         },
         "Description": "/opt/awscli/aws",
       },
